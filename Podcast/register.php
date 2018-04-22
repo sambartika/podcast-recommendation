@@ -32,9 +32,6 @@
             <li class="nav-item">
               <a class="nav-link" href="index.php">Home</a>
             </li>
-			<li class="nav-item">
-              <a class="nav-link" href="#">Search</a>
-            </li>
             <li class="nav-item">
 			  <?php
 				if(isset($_COOKIE['userrole']) )
@@ -64,50 +61,61 @@
     <div class="container">
 	  <?php
 		$flag=0;
+		
 		if (isSet($_POST['email']) && isSet($_POST['pass']) && $_POST['email'] != '' && $_POST['pass'] != '') 
 		{
 			//die('aaaaaaaaaaaaa');
 			if(isSet($_POST['f_name']) && isSet($_POST['l_name']) && $_POST['f_name'] != '' && $_POST['f_name'] != '')
 			{
 				//die('aaaaaaaaaaaaa');
-				$email= $_POST['email'];
-				$pass= $_POST['pass'];
-				$f_name= $_POST['f_name'];
-				$l_name=$_POST['l_name'];
-				$q = mysqli_query($conn, "INSERT INTO podcast.users (first_name, last_name, mail_id, password) VALUES ('$f_name','$l_name','$email','$pass')" ) ;
-				echo "INSERT INTO podcast.users (first_name, last_name, mail_id, password) VALUES ('$f_name','$l_name','$email','$pass')";
-				#$check_user = mysqli_num_rows($q);
-				//die('ccccc');
-				$q = mysqli_query($conn, "SELECT * FROM podcast.users WHERE mail_id='$email' AND password='$pass'" ) ;
-				$check_user = mysqli_num_rows($q);
-
-				
-				//$q = mysqli_query($conn, "SELECT * FROM podcast.users WHERE mail_id='$email' AND password='$pass'" ) ;
-				//$check_user = mysqli_num_rows($q);
-
-				if($check_user>0)
-				{	
-					if(($row = mysqli_fetch_assoc($q)))
-					{
-						$idd= $row["user_id"];
-					}			
-					setcookie("loggedin", 1, time()+3600);  /* expire in 1 hour */
-					setcookie("username", $email, time()+3600);  /* expire in 1 hour */
-					setcookie("userid", $idd, time()+3600);  /* expire in 1 hour */
-					setcookie("userrole", "user", time()+3600);  /* expire in 1 hour */
-					if(!empty($_POST['topics'])) {
-						foreach($_POST['topics'] as $check) {
-							$q=mysqli_query($conn, "INSERT INTO podcast.user_topic_mp(user_id, topic_id) VALUES ($idd, $check)" ) ;
-							$check_user = mysqli_num_rows($q);
-						}
-					}
-					
-					header("Location: index.php");
+				if(isSet($_POST['email']) && count($_POST['topics']) < 5)
+				{
+					$flag=5;
 				}
 				else
 				{
-					$flag=1;
+					
+					$email= $_POST['email'];
+					$pass= $_POST['pass'];
+					$f_name= $_POST['f_name'];
+					$l_name=$_POST['l_name'];
+					$q = mysqli_query($conn, "INSERT INTO podcast.users (first_name, last_name, mail_id, password) VALUES ('$f_name','$l_name','$email','$pass')" ) ;
+					echo "INSERT INTO podcast.users (first_name, last_name, mail_id, password) VALUES ('$f_name','$l_name','$email','$pass')";
+					#$check_user = mysqli_num_rows($q);
+					//die('ccccc');
+					$q = mysqli_query($conn, "SELECT * FROM podcast.users WHERE mail_id='$email' AND password='$pass'" ) ;
+					$check_user = mysqli_num_rows($q);
+
+					
+					//$q = mysqli_query($conn, "SELECT * FROM podcast.users WHERE mail_id='$email' AND password='$pass'" ) ;
+					//$check_user = mysqli_num_rows($q);
+
+					if($check_user>0)
+					{	
+						if(($row = mysqli_fetch_assoc($q)))
+						{
+							$idd= $row["user_id"];
+						}			
+						setcookie("loggedin", 1, time()+3600);  /* expire in 1 hour */
+						setcookie("username", $email, time()+3600);  /* expire in 1 hour */
+						setcookie("userid", $idd, time()+3600);  /* expire in 1 hour */
+						setcookie("userrole", "user", time()+3600);  /* expire in 1 hour */
+						echo count($_POST['topics']);
+						if(!empty($_POST['topics'])) {
+							foreach($_POST['topics'] as $check) {
+								$q=mysqli_query($conn, "INSERT INTO podcast.user_topic_mp(user_id, topic_id) VALUES ($idd, $check)" ) ;
+								$check_user = mysqli_num_rows($q);
+							}
+						}
+						
+						header("Location: index.php");
+					}
+					else
+					{
+						$flag=1;
+					}
 				}
+				
 			}
 		}
 	?>
@@ -123,7 +131,7 @@
 		<form name="register_form" accept-charset="utf-8" method="post" action="register.php">
           <div class="row">
 			<?php
-			$flag=0;
+			//$flag=0;
 			
 			if($flag==1)
 			{
@@ -132,6 +140,17 @@
 					</div>
 					<div class="form-group col-lg-4">
 						<label class="text-heading" style="color:red">Invalid email or password</label>
+					</div>
+					<div class="form-group col-lg-4">
+					</div>';
+			}
+			else if($flag==5)
+			{
+				echo'
+					<div class="form-group col-lg-4">
+					</div>
+					<div class="form-group col-lg-4">
+						<label class="text-heading" style="color:red">Select atleast five topics</label>
 					</div>
 					<div class="form-group col-lg-4">
 					</div>';
@@ -167,19 +186,24 @@
 			</div>
 			<div class="form-group col-lg-8">
               <label class="text-heading">Select Topics</label></br>
-              <input type="checkbox" name="topics[]" value="1" checked> Comedy &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="2"> Arts &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="3"> Games &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="4"> Sports &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="5"> TV &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="6"> Government &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="7"> Social Science </br>
-			  <input type="checkbox" name="topics[]" value="8"> Religion &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="9"> Education &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="10"> Music &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="11"> Business &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="12"> Health &nbsp;&nbsp;&nbsp;&nbsp;
-			  <input type="checkbox" name="topics[]" value="13"> Audio Drama &nbsp;&nbsp;&nbsp;&nbsp;
+			  <?php
+				$i=1;
+				$q = mysqli_query($conn, "SELECT * FROM podcast.topics" ) ;
+				$check_user = mysqli_num_rows($q);
+
+				if($check_user>0)
+				{
+					while(($row = mysqli_fetch_assoc($q)))
+					{
+						if($i ==1)
+							echo '<input type="checkbox" name="topics[]" value="'.$row['topic_id'].'" checked> '.$row['topic_name'].' &nbsp;&nbsp;&nbsp;&nbsp;';
+						else
+							echo '<input type="checkbox" name="topics[]" value="'.$row['topic_id'].'"> '.$row['topic_name'].' &nbsp;&nbsp;&nbsp;&nbsp;';
+						$i=$i+1;
+					}
+				}
+			
+			  ?>
             </div>
 			<div class="form-group col-lg-2">
 			</div>

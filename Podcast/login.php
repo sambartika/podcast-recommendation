@@ -32,9 +32,6 @@
             <li class="nav-item">
               <a class="nav-link" href="index.php">Home</a>
             </li>
-			<li class="nav-item">
-              <a class="nav-link" href="#">Search</a>
-            </li>
             <li class="nav-item active">
 			  <?php
 				if(isset($_COOKIE['userrole']) )

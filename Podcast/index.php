@@ -8,7 +8,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>3 Col Portfolio - Start Bootstrap Template</title>
+    <title>CPR</title>
 
     <!-- Bootstrap core CSS -->
     <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -43,19 +43,24 @@
 			x.classList.toggle("fa-thumbs-down");
 			setData($id, $z);
 		}
+		function myFunction1(x,$id) {
+			$z='1';
+			setData($id, $z);
+		}
 		function setData($id, $z){
 			$.ajax({
 				type: "POST",
 				url: "update_db.php",
 				data: { id: $id, like: $z}
 			   });
+			setTimeout(function () { location.reload(1); }, 7000);
 		}
 	</script>
 	
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
       <div class="container">
-        <a class="navbar-brand" href="#">Start Bootstrap</a>
+        <a class="navbar-brand" href="#">CPR</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -63,9 +68,6 @@
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
               <a class="nav-link active" href="index.php">Home</a>
-            </li>
-			<li class="nav-item">
-              <a class="nav-link" href="#">Search</a>
             </li>
             <li class="nav-item">
 			  <?php
@@ -97,8 +99,8 @@
     <div class="container">
 
       <!-- Page Heading -->
-      <h1 class="my-4">Page Heading
-        <small>Secondary Text</small>
+      <h1 class="my-4">Podcast Discovery
+        <small>A saviour for podcast</small>
       </h1>
 	  
 	  <form name="search_form" accept-charset="utf-8" method="post" action="index.php">
@@ -130,6 +132,9 @@
 				if(($row = mysqli_fetch_assoc($q)))
 				{
 					//$idd= $row["user_id"];
+					$img_url='http://placehold.it/700x400';
+					if(strlen($row['img_link'])>4)
+						$img_url=$row['img_link'];
 					echo '
 					<div class="clearfix"></div>
 					  <h3 class="my-4">You searched for </h3></br>
@@ -140,12 +145,12 @@
 					echo '
 					<div class="col-lg-3 col-sm-3 portfolio-item">
 					  <div class="card h-100">
-						<a href="#"><img class="card-img-top" src="http://placehold.it/700x400" alt=""></a>
+						<a href="#"><img class="card-img-top" src="'.$img_url.'" alt=""></a>
 						<div class="card-body">
 						  <h4 class="card-title">
-							<a href="'.$row['pd_link'].'">'.$row['pd_name'].'</a>
+							<a onclick="myFunction1(this,'.$row['pd_id'].')"  href="'.$row['pd_link'].'" target="_blank">'.$row['pd_name'].'</a>
 						  </h4>
-						  <p class="card-text">'.$arr1[0].' more......</p>
+						  <<p class="card-text">'.$arr1[0].' </p>
 						</div>
 					  </div>
 					</div>';
@@ -168,7 +173,79 @@
 	?>
 	  
 	  <?php
-	  $tps= array(1,5,11);
+		if(isset($_COOKIE['userrole']) )
+		{
+			$reco_flag=0;
+			$user_id= (int)$_COOKIE["userid"];
+			$q = mysqli_query($conn, "SELECT * FROM podcast.user_reco WHERE user_id = $user_id" ) ;
+    		$check_user = mysqli_num_rows($q);
+			$pds=array();
+			if($check_user>0){
+				echo '
+				<div class="clearfix"></div>
+				  <h3 class="my-4">Recommended</h3></br>
+				<div class="clearfix"></div>
+				<div class="row">';
+				while(($row = mysqli_fetch_assoc($q)))
+				{
+					array_push($pds, (int)$row['pd_id']);
+				}
+				$reco_flag=1;
+			}
+			
+			
+			foreach ($pds as &$pd) 
+			{
+				$q = mysqli_query($conn, "SELECT * FROM podcast.podcasts WHERE pd_id = $pd" ) ;
+				$check_user = mysqli_num_rows($q);
+				if($check_user>0){
+					if(($row = mysqli_fetch_assoc($q)))
+					{
+						$img_url='http://placehold.it/700x400';
+						if(strlen($row['img_link'])>4)
+							$img_url=$row['img_link'];
+						
+						//$arr1 = str_split($row['description'],200);
+						echo '
+						<div class="col-lg-3 col-sm-3 portfolio-item">
+						  <div class="card h-100">
+							<a href="#"><img class="card-img-top" src="'.$img_url.'" alt=""></a>
+							<div class="card-body">
+							  <h4 class="card-title">
+								<a onclick="myFunction1(this,'.$row['pd_id'].')"  href="'.$row['pd_link'].'" target="_blank">'.$row['pd_name'].'</a>
+							  </h4>
+							  <p class="card-text">'.$row['description'].' </p>
+							</div>
+						  </div>
+						</div>';
+						
+					}
+				}
+			}
+			if($reco_flag ==1)
+				echo '</div>';
+			
+		}
+	  $tps= array();
+	  if(isset($_COOKIE['userid']))
+	  {	
+		  $user_id= (int)$_COOKIE["userid"];
+		  $q = mysqli_query($conn, "SELECT * FROM podcast.user_topic_mp WHERE user_id= $user_id" ) ;
+		  while(($row = mysqli_fetch_assoc($q)))
+		  {
+			  array_push($tps, (int)$row['topic_id']);
+		  }
+	  }
+	  else
+	  {
+		  array_push($tps, 1);
+		  array_push($tps, 2);
+		  array_push($tps, 3);
+		  array_push($tps, 4);
+		  array_push($tps, 5);
+	  }
+	  
+	  
 	  foreach ($tps as &$value) 
 	  {
 		$q = mysqli_query($conn, "SELECT * FROM podcast.topics WHERE topic_id= $value" ) ;
@@ -197,17 +274,19 @@
 		  while ($row = mysqli_fetch_assoc($q)) 
 		  {
 			$arr1 = str_split($row['description'],200);
+			$img_url='http://placehold.it/700x400';
+			if(strlen($row['img_link'])>4)
+				$img_url=$row['img_link'];
 		    echo '
 			<div class="col-lg-3 col-sm-3 portfolio-item">
 			  <div class="card h-100">
-				<a href="#"><img class="card-img-top" src="http://placehold.it/700x400" alt=""></a>
+				<a href="#"><img class="card-img-top" src="'.$img_url.'" alt=""></a>
 				<div class="card-body">
 				  <h4 class="card-title">
-					<a href="'.$row['pd_link'].'">'.$row['pd_name'].'</a>
+					<a onclick="myFunction1(this,'.$row['pd_id'].')" href="'.$row['pd_link'].'" target="_blank">'.$row['pd_name'].'</a>
 				  </h4>
-				  <p class="card-text">'.$arr1[0].' more......</p>
+				  <p class="card-text">'.$arr1[0].'</p>
 				</div>
-				<i onclick="myFunction(this,'.$row['pd_id'].')" class="fa fa-thumbs-up" style="font-size:30px;padding-left:30px"></i>
 			  </div>
             </div>';
 		  }
